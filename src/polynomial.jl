@@ -1,6 +1,6 @@
 immutable Polynomial <: AbstractInterpolation
+    Polynomial() = Polynomial
 end
-Polynomial() = Polynomial
 
 function default_settings{D,T}(::Type{Polynomial},axes::NTuple{D,T})
     N = length(axes[1])
@@ -8,9 +8,9 @@ function default_settings{D,T}(::Type{Polynomial},axes::NTuple{D,T})
 end
 
 type PolynomialInterpolation{T,N}
-  coeff::Vector{T}
   x::Vector{T}
   y::Vector{T}
+  coeff::Vector{T}
 end
 
 function preprocess(::Type{Polynomial}, axes, f)
@@ -27,11 +27,27 @@ function preprocess(::Type{Polynomial}, axes, f)
         coeff[i] = (y[i]/coeff[i])
     end
     x,y,coeff = promote(x,y,coeff)
-    return PolynomialInterpolation{eltype(x),nx}(coeff,x,y)
+    return PolynomialInterpolation{eltype(x),nx}(x,y,coeff)
 end
 
-function apply_bc(::Type{Polynomial}, ::Type{None}, I::Symbol, x::Symbol)
-    :()
+function apply_bc(::Type{Polynomial},BC::Type{Nearest}, I::Symbol, x::Symbol)
+    apply_nearest(I,1,x,1)
+end
+
+function apply_bc(::Type{Polynomial},BC::Type{Reflect}, I::Symbol, x::Symbol)
+    apply_reflect(I,1,x,1)
+end
+
+function apply_bc{V}(::Type{Polynomial},BC::Type{Value{V}}, I::Symbol, x::Symbol)
+    apply_value(BC, I, 1, x, 1)
+end
+
+function apply_bc(::Type{Polynomial},BC::Type{None}, I::Symbol, x::Symbol)
+    apply_none()
+end
+
+function apply_bc(::Type{Polynomial},BC::Type{Error}, I::Symbol, x::Symbol)
+    apply_error(I, 1, x, 1)
 end
 
 @inline function get_indices{D,N}(::Type{Polynomial}, G::Type{Irregular{D,N}}, I, x)
@@ -46,7 +62,7 @@ end
         tmp = 1.0
         for j = 1:N
             j == i && continue
-            tmp = tmp * (x - xx[j])
+            tmp = tmp * (x[1] - xx[j])
         end
         y = y + tmp*coeff[i]
     end

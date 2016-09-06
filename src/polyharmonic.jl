@@ -38,7 +38,7 @@ function preprocess{K,S}(phs::Type{PolyharmonicSpline{K,S}}, axes, f)
     M = zeros(m,m)
     N = zeros(m,n+1)
 
-    for i=1:m
+    @inbounds for i=1:m
         N[i,1] = 1
         N[i,2:end] = centers[:,i]
         for j=i:m
@@ -56,8 +56,8 @@ function preprocess{K,S}(phs::Type{PolyharmonicSpline{K,S}}, axes, f)
     return PolyharmonicSplineInterpolation{eltype(w),n,length(w)}(w,values,centers)
 end
 
-function apply_bc{K,S}(::Type{PolyharmonicSpline{K,S}}, ::Type{None}, I::Symbol, x::Symbol)
-    :()
+function apply_bc{K,S}(::Type{PolyharmonicSpline{K,S}},BC::Type{None}, I::Symbol, x::Symbol)
+    apply_none()
 end
 
 @inline function get_indices{K,S,D,N}(::Type{PolyharmonicSpline{K,S}}, G::Type{Irregular{D,N}}, I, x)
