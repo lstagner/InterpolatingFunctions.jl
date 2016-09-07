@@ -19,19 +19,15 @@ function deriv(x,y,i)
     nx = length(x)
     if i == 1
         dy = y[i+1] - y[i]
-        dx = x[i+1] - x[i]
-        return dy/dx
+        return dy
     end
     if i == nx
         dy = y[i] - y[i-1]
-        dx = x[i] - x[i-1]
-        return dy/dx
+        return dy
     end
     dy1 = y[i+1] - y[i]
-    dx1 = x[i+1] - x[i]
     dy2 = y[i] - y[i-1]
-    dx2 = x[i] - x[i-1]
-    return 0.5*(dy1/dx1 + dy2/dx2)
+    return 0.5*(dy1 + dy2)
 end
 
 function BicubicSpline(x::AbstractVector,y::AbstractVector, z::AbstractArray)
@@ -62,9 +58,9 @@ function BicubicSpline(x::AbstractVector,y::AbstractVector, z::AbstractArray)
     A = zeros(4,4,nx,ny)
     for i=1:nx-1
         for j=1:ny-1
-            F = [z[i,j] z[i,j+1] py[i,j] py[i,j+1];
-                 z[i+1,j] z[i+1,j+1] py[i+1,j] py[i+1,j+1];
-                 px[i,j] px[i,j+1] pxy[i,j] pxy[i,j+1];
+            F = [z[i,j]    z[i,j+1]    py[i,j]    py[i,j+1];
+                 z[i+1,j]  z[i+1,j+1]  py[i+1,j]  py[i+1,j+1];
+                 px[i,j]   px[i,j+1]   pxy[i,j]   pxy[i,j+1];
                  px[i+1,j] px[i+1,j+1] pxy[i+1,j] pxy[i+1,j+1]]
             A[:,:,i,j] = C*(F*C')
         end
@@ -137,8 +133,10 @@ end
 @inline function get_value(::Type{BicubicSpline}, I, x, inds)
     ix, iy = inds
     A = I.A[:,:,ix,iy]
-    xx = x[1] - I.x[ix]
-    yy = x[2] - I.y[iy]
+    dx = I.x[ix+1] - I.x[ix]
+    xx = (x[1] - I.x[ix])/dx
+    dy = I.y[iy+1] - I.y[iy]
+    yy = (x[2] - I.y[iy])/dy
     v = (1.0) *(A[1,1] + A[1,2]*yy + A[1,3]*(yy^2) + A[1,4]*(yy^3)) +
         (xx)  *(A[2,1] + A[2,2]*yy + A[2,3]*(yy^2) + A[2,4]*(yy^3)) +
         (xx^2)*(A[3,1] + A[3,2]*yy + A[3,3]*(yy^2) + A[3,4]*(yy^3)) +
