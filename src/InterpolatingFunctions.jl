@@ -20,7 +20,15 @@ function interpolate_gen(I,G,BC)
     ifunc = quote
         interp = preprocess($I, axes, f)
         function InterpolatingFunction(args...)
-            x = length(args) > 1 ? collect(args) : collect(args...)
+            if length(args) == 1
+                if typeof(args[1]) <: AbstractArray
+                    x = args[1]
+                else
+                    x = [args[1]]
+                end
+            else
+                x = collect(args)
+            end
             $(bc_expr)
 
             inds = get_indices($I, $G, interp, x)
@@ -40,7 +48,7 @@ end
     interpolate_gen(I,G,BC)
 end
 
-export interpolate
+export interpolate, InterpolatingFunction
 export Uniform, Irregular
 export Nearest, Value, Reflect, Error, None
 export CubicSpline, Monotonic, NonMonotonic

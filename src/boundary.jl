@@ -2,7 +2,7 @@ abstract AbstractBoundaryCondition
 
 type Value{V} <: AbstractBoundaryCondition end
 Value(V) = Value{Val{V}}
-function apply_nearest{V}(BC::Type{Value{V}},I::Symbol, fi::Int, x::Symbol, xi::Int)
+function apply_value{V}(BC::Type{Value{V}},I::Symbol, fi::Int, x::Symbol, xi::Int)
     quote
         xmin, xmax = extrema(getfield($I,$fi))
         if $x[$xi] < xmin || $x[$xi] > xmax
@@ -42,7 +42,7 @@ function apply_error(I::Symbol,fi::Int,x::Symbol,xi::Int)
     quote
         xmin, xmax = extrema(getfield($I,$fi))
         if $x[$xi] < xmin || $x[$xi] > xmax
-            return throw(ArgumentError("$x[$xi] is out of range"))
+            return throw(ArgumentError("Out of range"))
         end
     end
 end

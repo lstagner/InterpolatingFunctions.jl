@@ -116,10 +116,10 @@ end
 
 @inline function get_indices{S}(::Type{BicubicSpline}, G::Type{Uniform{2,S}}, I, x)
     dx = I.x[2]-I.x[1]
-    ix = clamp(Int(floor((x - I.x[1])/dx)) + 1, 1, S.parameters[1][1]-1)
+    ix = clamp(Int(floor((x[1] - I.x[1])/dx)) + 1, 1, S.parameters[1][1]-1)
     dy = I.y[2]-I.y[1]
-    iy = clamp(Int(floor((y - I.y[1])/dy)) + 1, 1, S.parameters[1][2]-1)
-    return ix, iy
+    iy = clamp(Int(floor((x[2] - I.y[1])/dy)) + 1, 1, S.parameters[1][2]-1)
+    return (ix, iy)
 end
 
 @inline function get_indices{S}(::Type{BicubicSpline}, G::Type{Irregular{2,S}}, I, x)
@@ -127,7 +127,7 @@ end
     ix = clamp(xr, 1, S.parameters[1][1]-1)
     yr = searchsortedlast(I.y,x[2],Base.Order.Forward)
     iy = clamp(yr, 1, S.parameters[1][2]-1)
-    return ix, iy
+    return (ix, iy)
 end
 
 @inline function get_value(::Type{BicubicSpline}, I, x, inds)
